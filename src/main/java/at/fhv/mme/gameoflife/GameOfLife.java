@@ -2,9 +2,14 @@ package at.fhv.mme.gameoflife;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 public class GameOfLife extends Application {
@@ -17,6 +22,7 @@ public class GameOfLife extends Application {
     // animation timer to keep simulating/drawing
     private AnimationTimer timer;
     private long lastUpdate = 0;
+    private int boardSpeed = 1000;
 
     @Override
     public void start(Stage stage) {
@@ -25,9 +31,27 @@ public class GameOfLife extends Application {
         gameBoard.draw();
 
         BorderPane root = new BorderPane();
-        BorderPane buttonPane = new BorderPane();
+        BorderPane buttonPane = initButtonPane();
 
-        // initialize control buttons (start/stop); stop button is disabled at beginning
+
+        root.setCenter(gameBoard);
+        root.setBottom(buttonPane);
+
+        Scene scene = new Scene(root, BOARD_WIDTH, BOARD_HEIGHT + 50);
+        stage.setScene(scene);
+        stage.setTitle("Game of Life");
+        stage.show();
+    }
+
+    public BorderPane initButtonPane() {
+        BorderPane bottomPane = new BorderPane();
+
+        HBox buttonBox = new HBox();
+        buttonBox.setPadding(new Insets(15));
+        buttonBox.setSpacing(10);
+        buttonBox.setAlignment(Pos.CENTER_LEFT);
+
+        // START, NEXT & STOP BUTTONS ----------------------------------------------------------------------------------
         Button startButton = new Button("Start");
         Button nextButton = new Button("Next");
         Button stopButton = new Button("Stop");
@@ -49,7 +73,7 @@ public class GameOfLife extends Application {
                     long currentTime = System.currentTimeMillis();
 
                     // every second, the game board is updated
-                    if (currentTime - lastUpdate >= 1000) {
+                    if (currentTime - lastUpdate >= boardSpeed) {
                         gameBoard.update();
                         gameBoard.draw();
                         lastUpdate = currentTime;
@@ -61,7 +85,7 @@ public class GameOfLife extends Application {
 
         // next button functionality
         nextButton.setOnAction(e -> {
-            // update board 1 time
+            // update board one time
             gameBoard.update();
             gameBoard.draw();
         });
@@ -79,17 +103,30 @@ public class GameOfLife extends Application {
             timer.stop();
         });
 
-        buttonPane.setLeft(nextButton);
-        buttonPane.setCenter(startButton);
-        buttonPane.setRight(stopButton);
+        buttonBox.getChildren().addAll(nextButton, startButton, stopButton);
+        bottomPane.setLeft(buttonBox);
 
-        root.setCenter(gameBoard);
-        root.setBottom(buttonPane);
+        // SPEED SETTINGS ----------------------------------------------------------------------------------------------
+        HBox speedBox = new HBox();
+        speedBox.setPadding(new Insets(15));
+        speedBox.setSpacing(10);
+        speedBox.setAlignment(Pos.CENTER_RIGHT);
 
-        Scene scene = new Scene(root, BOARD_WIDTH, BOARD_HEIGHT + 50);
-        stage.setScene(scene);
-        stage.setTitle("Game of Life");
-        stage.show();
+        Label speedLabel = new Label("Speed (ms):");
+        Spinner<Integer> speedInput = new Spinner<>(100, 2500, boardSpeed);
+        speedInput.setEditable(true);
+        speedInput.getEditor().textProperty().addListener(((observableValue, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                speedInput.getEditor().setText(oldValue);
+            }
+
+            boardSpeed = Integer.parseInt(speedInput.getEditor().getText());
+        }));
+
+        speedBox.getChildren().addAll(speedLabel, speedInput);
+        bottomPane.setRight(speedBox);
+
+        return bottomPane;
     }
 
     public static void main(String[] args) {
