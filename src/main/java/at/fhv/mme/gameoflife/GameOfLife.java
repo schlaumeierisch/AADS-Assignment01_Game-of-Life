@@ -2,14 +2,9 @@ package at.fhv.mme.gameoflife;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 public class GameOfLife extends Application {
@@ -25,21 +20,12 @@ public class GameOfLife extends Application {
 
     @Override
     public void start(Stage stage) {
+        boolean[][] initialState = new boolean[BOARD_WIDTH / CELL_SIZE][BOARD_HEIGHT / CELL_SIZE];
+        gameBoard = new GameBoard(BOARD_WIDTH, BOARD_HEIGHT, CELL_SIZE, initialState);
+        gameBoard.draw();
+
         BorderPane root = new BorderPane();
-
-        Canvas canvas = new Canvas(BOARD_WIDTH, BOARD_HEIGHT);
-        root.setCenter(canvas);
-
-        Scene scene = new Scene(root, 600, 600);
-        stage.setScene(scene);
-        stage.show();
-
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-
-        // initialize the game board
-        this.gameBoard = new GameBoard(BOARD_WIDTH, BOARD_HEIGHT, CELL_SIZE);
-        gameBoard.init();
-        gameBoard.draw(gc);
+        BorderPane buttonPane = new BorderPane();
 
         // initialize control buttons (start/stop); stop button is disabled at beginning
         Button startButton = new Button("Start");
@@ -49,6 +35,8 @@ public class GameOfLife extends Application {
 
         // start button functionality
         startButton.setOnAction(e -> {
+            gameBoard.setRunning(true);
+
             // disable start button & enable stop button
             startButton.setDisable(true);
             nextButton.setDisable(true);
@@ -63,7 +51,7 @@ public class GameOfLife extends Application {
                     // every second, the game board is updated
                     if (currentTime - lastUpdate >= 1000) {
                         gameBoard.update();
-                        gameBoard.draw(gc);
+                        gameBoard.draw();
                         lastUpdate = currentTime;
                     }
                 }
@@ -75,11 +63,13 @@ public class GameOfLife extends Application {
         nextButton.setOnAction(e -> {
             // update board 1 time
             gameBoard.update();
-            gameBoard.draw(gc);
+            gameBoard.draw();
         });
 
         // stop button functionality
         stopButton.setOnAction(e -> {
+            gameBoard.setRunning(false);
+
             // disable stop button, enable start & next button
             stopButton.setDisable(true);
             startButton.setDisable(false);
@@ -89,10 +79,17 @@ public class GameOfLife extends Application {
             timer.stop();
         });
 
-        HBox buttons = new HBox(10, startButton, nextButton, stopButton);
-        buttons.setAlignment(Pos.CENTER);
-        buttons.setPadding(new Insets(20));
-        root.setBottom(buttons);
+        buttonPane.setLeft(nextButton);
+        buttonPane.setCenter(startButton);
+        buttonPane.setRight(stopButton);
+
+        root.setCenter(gameBoard);
+        root.setBottom(buttonPane);
+
+        Scene scene = new Scene(root, BOARD_WIDTH, BOARD_HEIGHT + 50);
+        stage.setScene(scene);
+        stage.setTitle("Game of Life");
+        stage.show();
     }
 
     public static void main(String[] args) {

@@ -1,41 +1,47 @@
 package at.fhv.mme.gameoflife;
 
-
+import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-public class GameBoard {
+public class GameBoard extends Canvas {
     private final int width;
     private final int height;
     private final int cellSize;
 
     private boolean[][] currentState;
 
-    public GameBoard(int width, int height, int cellSize) {
+    private boolean isRunning = false;
+
+    public GameBoard(int width, int height, int cellSize, boolean[][] initialState) {
+        super(width, height);
+
         this.width = width;
         this.height = height;
         this.cellSize = cellSize;
 
-        this.currentState = new boolean[width / cellSize][height / cellSize];
+        this.currentState = initialState;
+
+        setOnMouseClicked(e -> {
+            if (!isRunning) {
+                int x = (int) (e.getX() / cellSize);
+                int y = (int) (e.getY() / cellSize);
+
+                currentState[x][y] = !currentState[x][y];
+                draw();
+            }
+        });
     }
 
-    public void setCell(int x, int y, boolean alive) {
-        currentState[x][y] = alive;
+    public void setRunning(boolean running) {
+        isRunning = running;
     }
 
-    public void init() {
-        // define which cells are alive
-        setCell(5, 5, true);
-        setCell(5, 6, true);
-        setCell(5, 7, true);
-//        setCell(6, 5, true);
-//        setCell(7, 7, true);
-    }
-
-    public void draw(GraphicsContext gc) {
+    public void draw() {
+        GraphicsContext gc = getGraphicsContext2D();
         gc.setFill(Color.WHITE);
         gc.setStroke(Color.DARKGREY);
-        gc.fillRect(0, 0, this.width, this.height);
+        gc.fillRect(0, 0, width, height);
 
         for (int x = 0; x < width; x += cellSize) {
             for (int y = 0; y < height; y += cellSize) {
