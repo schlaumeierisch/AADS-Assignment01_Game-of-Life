@@ -43,15 +43,18 @@ public class GameOfLife extends Application {
 
         // initialize control buttons (start/stop); stop button is disabled at beginning
         Button startButton = new Button("Start");
+        Button nextButton = new Button("Next");
         Button stopButton = new Button("Stop");
         stopButton.setDisable(true);
 
-        // button functionality
+        // start button functionality
         startButton.setOnAction(e -> {
             // disable start button & enable stop button
             startButton.setDisable(true);
+            nextButton.setDisable(true);
             stopButton.setDisable(false);
 
+            // set timer and update board every 1000ms
             timer = new AnimationTimer() {
                 @Override
                 public void handle(long l) {
@@ -68,15 +71,25 @@ public class GameOfLife extends Application {
             timer.start();
         });
 
-        stopButton.setOnAction(e -> {
-            // disable stop button & enable start button
-            stopButton.setDisable(true);
-            startButton.setDisable(false);
-
-            // TODO
+        // next button functionality
+        nextButton.setOnAction(e -> {
+            // update board 1 time
+            gameBoard.update();
+            gameBoard.draw(gc);
         });
 
-        HBox buttons = new HBox(10, startButton, stopButton);
+        // stop button functionality
+        stopButton.setOnAction(e -> {
+            // disable stop button, enable start & next button
+            stopButton.setDisable(true);
+            startButton.setDisable(false);
+            nextButton.setDisable(false);
+
+            // stop timer
+            timer.stop();
+        });
+
+        HBox buttons = new HBox(10, startButton, nextButton, stopButton);
         buttons.setAlignment(Pos.CENTER);
         buttons.setPadding(new Insets(20));
         root.setBottom(buttons);

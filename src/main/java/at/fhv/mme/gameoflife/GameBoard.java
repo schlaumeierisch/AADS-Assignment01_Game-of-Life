@@ -28,8 +28,8 @@ public class GameBoard {
         setCell(5, 5, true);
         setCell(5, 6, true);
         setCell(5, 7, true);
-        setCell(6, 5, true);
-        setCell(7, 7, true);
+//        setCell(6, 5, true);
+//        setCell(7, 7, true);
     }
 
     public void draw(GraphicsContext gc) {
