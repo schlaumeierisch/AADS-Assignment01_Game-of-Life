@@ -3,6 +3,14 @@ package at.fhv.mme.gameoflife;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
+import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameBoard extends Canvas {
     private final int width;
@@ -99,5 +107,63 @@ public class GameBoard extends Canvas {
             }
         }
         return count;
+    }
+
+    public void save() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String fileName = LocalDateTime.now().format(formatter) + ".txt";
+        String filePath = "src/main/resources/at/fhv/mme/gameoflife/saved_states/";
+
+        File file = new File(filePath + fileName);
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (int i = 0; i < currentState.length; i++) {
+                for (int j = 0; j < currentState[i].length; j++) {
+                    writer.write(currentState[i][j] + " ");
+                }
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void load() {
+        Stage stage = new Stage();
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select file");
+        fileChooser.setInitialDirectory(new File("src/main/resources/at/fhv/mme/gameoflife/saved_states/"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text files", "*.txt"));
+
+        File file = fileChooser.showOpenDialog(stage);
+        if (file == null) {
+            return;
+        }
+
+        List<String> lines = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                lines.add(line);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        int numRows = lines.size();
+        int numCols = lines.get(0).split(" ").length;
+        boolean[][] loadedState = new boolean[numRows][numCols];
+
+        for (int i = 0; i < numRows; i++) {
+            String[] values = lines.get(i).split(" ");
+            for (int j = 0; j < numCols; j++) {
+                loadedState[i][j] = Boolean.parseBoolean(values[j]);
+            }
+        }
+
+        currentState = loadedState;
+        draw();
     }
 }

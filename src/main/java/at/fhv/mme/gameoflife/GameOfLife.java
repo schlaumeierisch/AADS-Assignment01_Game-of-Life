@@ -5,9 +5,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Spinner;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
@@ -33,7 +31,6 @@ public class GameOfLife extends Application {
         BorderPane root = new BorderPane();
         BorderPane buttonPane = initButtonPane();
 
-
         root.setCenter(gameBoard);
         root.setBottom(buttonPane);
 
@@ -51,6 +48,13 @@ public class GameOfLife extends Application {
         buttonBox.setSpacing(10);
         buttonBox.setAlignment(Pos.CENTER_LEFT);
 
+        // SAVE & LOAD BUTTONS -----------------------------------------------------------------------------------------
+        Button saveButton = new Button("Save");
+        Button loadButton = new Button("Load");
+
+        saveButton.setOnAction(e -> gameBoard.save());
+        loadButton.setOnAction(e -> gameBoard.load());
+
         // START, NEXT & STOP BUTTONS ----------------------------------------------------------------------------------
         Button startButton = new Button("Start");
         Button nextButton = new Button("Next");
@@ -65,6 +69,9 @@ public class GameOfLife extends Application {
             startButton.setDisable(true);
             nextButton.setDisable(true);
             stopButton.setDisable(false);
+
+            saveButton.setDisable(true);
+            loadButton.setDisable(true);
 
             // set timer and update board every 1000ms
             timer = new AnimationTimer() {
@@ -99,11 +106,14 @@ public class GameOfLife extends Application {
             startButton.setDisable(false);
             nextButton.setDisable(false);
 
+            saveButton.setDisable(false);
+            loadButton.setDisable(false);
+
             // stop timer
             timer.stop();
         });
 
-        buttonBox.getChildren().addAll(nextButton, startButton, stopButton);
+        buttonBox.getChildren().addAll(nextButton, startButton, stopButton, saveButton, loadButton);
         bottomPane.setLeft(buttonBox);
 
         // SPEED SETTINGS ----------------------------------------------------------------------------------------------
@@ -113,17 +123,26 @@ public class GameOfLife extends Application {
         speedBox.setAlignment(Pos.CENTER_RIGHT);
 
         Label speedLabel = new Label("Speed (ms):");
-        Spinner<Integer> speedInput = new Spinner<>(100, 2500, boardSpeed);
-        speedInput.setEditable(true);
-        speedInput.getEditor().textProperty().addListener(((observableValue, oldValue, newValue) -> {
-            if (!newValue.matches("\\d*")) {
-                speedInput.getEditor().setText(oldValue);
+        TextField speedInput = new TextField();
+        speedInput.setText(String.valueOf(boardSpeed));
+        speedInput.setPrefWidth(50);
+
+        Button setSpeedButton = new Button("Set");
+        setSpeedButton.setOnAction(e -> {
+            if (!speedInput.getText().isEmpty() && speedInput.getText().matches("\\d*")) {
+                int newBoardSpeed = Integer.parseInt(speedInput.getText().replaceAll(",", ""));
+
+                if (newBoardSpeed >= 10 && newBoardSpeed <= 2500) {
+                    boardSpeed = newBoardSpeed;
+                } else {
+                    speedInput.setText(String.valueOf(boardSpeed));
+                }
+            } else {
+                speedInput.setText(String.valueOf(boardSpeed));
             }
+        });
 
-            boardSpeed = Integer.parseInt(speedInput.getEditor().getText());
-        }));
-
-        speedBox.getChildren().addAll(speedLabel, speedInput);
+        speedBox.getChildren().addAll(speedLabel, speedInput, setSpeedButton);
         bottomPane.setRight(speedBox);
 
         return bottomPane;
