@@ -30,6 +30,7 @@ public class GameBoard extends Canvas {
 
         this.currentState = initialState;
 
+        // user is able to configure the board by mouse clicks as long as the program is not running
         setOnMouseClicked(e -> {
             if (!isRunning) {
                 int x = (int) (e.getX() / cellSize);
@@ -110,6 +111,7 @@ public class GameBoard extends Canvas {
     }
 
     public void save() {
+        // create a new .txt file with the current state of the GameBoard (matrix)
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         String fileName = LocalDateTime.now().format(formatter) + ".txt";
         String filePath = "src/main/resources/at/fhv/mme/gameoflife/saved_states/";
@@ -117,9 +119,9 @@ public class GameBoard extends Canvas {
         File file = new File(filePath + fileName);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            for (int i = 0; i < currentState.length; i++) {
-                for (int j = 0; j < currentState[i].length; j++) {
-                    writer.write(currentState[i][j] + " ");
+            for (int x = 0; x < currentState.length; x++) {
+                for (int y = 0; y < currentState[x].length; y++) {
+                    writer.write(currentState[x][y] + " ");
                 }
                 writer.newLine();
             }
@@ -129,6 +131,7 @@ public class GameBoard extends Canvas {
     }
 
     public void load() {
+        // load a saved GameBoard state, update the current state and draw the board
         Stage stage = new Stage();
 
         FileChooser fileChooser = new FileChooser();
